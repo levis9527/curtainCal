@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>窗帘计算器</title>
+</head>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<body>
+	<div id="app">
+		<p>选择布料</p>
+		<div>
+			<table>
+				<tr>
+					<th>名字</th>
+					<th>米数</th>
+					<th>单价</th>
+					<th>倍数</th>
+					<th>操作</th>
+				</tr>
+				<tr v-for="cloth in cloths" :key="cloth.index">
+					<td>{{cloth.name}}</td>
+					<td>{{cloth.meters}}</td>
+					<td>{{cloth.price}}</td>
+					<td>{{cloth.multiple}}</td>
+					<td><button v-on:click="delCloth(cloth.index)">删除</button></td>
+				</tr>
+			</table>
+			<p>布料总价：{{clothsSum}}</p>
+		</div>
+		<hr>
+		<p>选择配件</p>
+		<div>
+			<table>
+				<tr>
+					<th>名字</th>
+					<th>规格</th>
+					<th>数量</th>
+					<th>单价</th>
+					<th>操作</th>
+				</tr>
+				<tr v-for="accessorie in accessories" :key="accessorie.index">
+					<td>{{accessorie.name}}</td>
+					<td>{{accessorie.spec}}</td>
+					<td>{{accessorie.number}}</td>
+					<td>{{accessorie.price}}</td>
+					<td><button v-on:click="delAccessorie(accessorie.index)">删除</button></td>
+				</tr>
+			</table>
+			<p>配件总价：{{accessoriesSum}}</p>
+		</div>
+		<hr>
+		<p>其他选择</p>
+		<div>
+			<table>
+				<tr>
+					<th>项目</th>
+					<th>价格</th>
+					<th>操作</th>
+				</tr>
+				<tr v-for="other in others" :key="other.key">
+					<td>{{other.project}}</td>
+					<td>{{other.price}}</td>
+					<td><button v-on:click="delOther(other.index)">删除</button></td>
+				</tr>
+			</table>
+			<p>其他总价：{{othersSum}}</p>
+		</div>
+		<hr>
+		<p>所有总价：{{totalSum}}</p>
+
+		<div>
+			<button v-on:click="addType='cloth'">添加布料</button>
+			<button v-on:click="addType='accessorie'">添加配件</button>
+			<button v-on:click="addType='other'">添加其他</button>
+		</div>
+
+		<div v-show="addType=='cloth'" class="addPage">
+			<p>添加布料</p>
+			名字<input type="text" v-model="addClothData.name">
+			<br>
+			<span class="item" v-for="name in clothKinds" v-on:click="setClothName(name)">{{name}}</span>
+			<br>
+			米数<input type="number" v-model="addClothData.meters">
+			<br>
+			单价<input type="number" v-model="addClothData.price">
+			<br>
+			倍数<input type="number" v-model="addClothData.multiple">
+			<p><button v-on:click="addCloth">添加布料</button><br><button v-on:click="addType=''">点击关闭</button></p>
+		</div>
+		<div v-show="addType=='accessorie'" class="addPage">
+			<p>添加配件</p>
+			配件名<input type="text" v-model="addAccessorieData.name">
+			<br>
+			<span class="item" v-for="name in accessorieKinds" v-on:click="setAccessorieName(name)">{{name}}</span>
+			<br>
+			规格<input type="text" v-model="addAccessorieData.spec">
+			<br>
+			数量<input type="number" v-model="addAccessorieData.number">
+			<br>
+			价格<input type="number" v-model="addAccessorieData.price">
+			<p><button v-on:click="addAccessorie">添加配件</button><br><button v-on:click="addType=''">点击关闭</button></p>
+		</div>
+		<div v-show="addType=='other'" class="addPage">
+			<p>添加其他</p>
+			项目<input type="text" v-model="addOtherData.project">
+			<br>
+			<span class="item" v-for="project in accessorieKinds" v-on:click="setAccessorieName(project)">{{project}}</span>
+			<br>
+			价格<input type="number" v-model="addOtherData.price">
+			<p><button v-on:click="addOther">添加其他</button><br><button v-on:click="addType=''">点击关闭</button></p>
+		</div>
+	</div>
+	
+</body>
+
+<script type="text/javascript">
+	var app = new Vue({
+		el: "#app",
+		data: {
+			cloths: [ // 布料
+				// {
+				// 	index: 0,
+				// 	name: "名字", // 布或者纱
+				// 	meters: 3, // 米数
+				// 	price: 70, // 每米单价
+				// 	multiple: 2 // 倍数
+				// }
+
+			],
+			accessories: [ // 配件
+				// {
+				// 	index: 0,
+				// 	name: "罗马杆", // 配件名
+				// 	spec: "米", // 规格
+				// 	number: 3, // 数量
+				// 	price: 30 // 价格
+				// }
+			],
+			others: [ // 其他
+				// {
+				// 	index: 0,
+				// 	project: "未知项目", // 项目
+				// 	price: 188 // 价格
+				// }
+			],
+			clothKinds: [
+				"布", "纱"
+			],
+			accessorieKinds: [ // 配件种类可选列表
+				"罗马杆", "轨道"
+			],
+			otherKinds: [ // 其他费用可选列表
+				"安装费用"
+			],
+			discount: 1, // 折扣优惠
+			addClothData: {
+				name: "布",
+				meters: 10,
+				price: 10,
+				multiple: 2
+			},
+			addAccessorieData: {
+				name: "罗马杆", // 配件名
+				spec: "米", // 规格
+				number: 3, // 数量
+				price: 30 // 价格
+			},
+			addOtherData: {
+				project: "未知项目", // 项目
+				price: 188 // 价格
+			},
+			addType: ""
+		},
+		methods: {
+			addCloth: function(name, meters, price, multiple) { // 添加布料
+				this.cloths.push({
+					index: this.cloths.length,
+					name: this.addClothData.name,
+					meters: this.addClothData.meters,
+					price: this.addClothData.price,
+					multiple: this.addClothData.multiple
+				});
+				this.addType = "";
+			},
+			delCloth: function(index) {
+				this.cloths.splice(index, 1)
+				for (var i = 0; i < this.cloths.length; i++){ // 删除数据后重排index
+					this.cloths[i].index = i;
+				}
+			},
+			setClothName: function(name) {
+				this.addClothData.name = name
+			},
+			addAccessorie: function(name, spec, number, price) { // 添加配件
+				this.accessories.push({
+					index: this.accessories.length,
+					name: this.addAccessorieData.name,
+					spec: this.addAccessorieData.spec,
+					number: this.addAccessorieData.number,
+					price: this.addAccessorieData.price
+				});
+				this.addType = "";
+			},
+			delAccessorie: function(index) {
+				this.accessories.splice(index, 1)
+				for (var i = 0; i < this.accessories.length; i++){ // 删除数据后重排index
+					this.accessories[i].index = i;
+				}
+			},
+			setAccessorieName: function(name){
+				this.addAccessorieData.name = name
+			},
+			addOther: function(project, price) { // 添加其他物件
+				this.others.push({
+					index: this.others.length,
+					project: this.addOtherData.project,
+					price: this.addOtherData.price
+				});
+				this.addType = "";
+			},
+			delOther: function(index) {
+				this.others.splice(index, 1)
+				for (var i = 0; i < this.others.length; i++){ // 删除数据后重排index
+					this.others[i].index = i;
+				}
+			},
+			setOtherName: function(project){
+				this.addOtherData.project = project
+			},
+
+		},
+		created: function(){
+
+		},
+		computed: {
+			clothsSum: function() { // 计算布料价格
+				var sum = 0;
+				for (var i = 0; i < this.cloths.length; i++) {
+					sum += (this.cloths[i].price * this.cloths[i].meters * this.cloths[i].multiple)
+				}
+				return sum;
+			},
+			accessoriesSum: function(){ // 计算配件价格
+				var sum = 0;
+				for (var i = 0; i < this.accessories.length; i++) {
+					// console.log(this.cloths[i].price)
+					sum += (this.accessories[i].price * this.accessories[i].number)
+				}
+				return sum;
+			},
+			othersSum: function(){ // 计算其他项目价格
+				var sum = 0;
+				for (var i = 0; i < this.others.length; i++) {
+					// console.log(this.cloths[i].price)
+					sum += (this.others[i].price * 1)
+				}
+				return sum;
+			},
+			totalSum: function(){ // 计算全部总价
+				return this.clothsSum + this.accessoriesSum + this.othersSum;
+			}
+		}
+
+	})
+</script>
+
+<style>
+	.addPage{
+		position: fixed;
+		top: 0;
+		left: 0;
+		background-color: #AAAAAA;
+		width: 100%;
+		height: 100%;
+		text-align: center;
+	}
+	.item{
+		/*background-color: #4395ff;
+		padding: 15px;*/
+		/*border: 1px solid #4395ff;*/
+	    -webkit-border-radius: 5px;
+	    -moz-border-radius: 5px;
+	    border-radius: 5px;
+	    margin-left: 14px;
+	    /*margin-top: 15px;*/
+	}
+
+</style>
+</html>
